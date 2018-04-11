@@ -125,10 +125,11 @@ class DET_SHOW(object):
         color = pg.glColor(color+55,color+55,color+55)
 
         plt = gl.GLMeshItem(meshdata=meshdata, color = color,
-                            #edgeColor=pg.glColor('r'),
+                            edgeColor=pg.glColor('w'),
                             drawEdges=False,
                             smooth=True,
-                            shader='shaded',
+                            drawFaces=True,
+                            shader= 'shaded',
                             glOptions='opaque',
                             computeNormals='False')
         self.w.addItem(plt)
@@ -219,4 +220,5 @@ if __name__ == '__main__':
     data = np.array(pd.read_hdf(filename,key='MC'), dtype = 'int32')
     # for i in range(0,100):
     #     B(positions,data,i)
-    B(positions,data,1,True,False)
+    
+    B(positions,data,1,ident=False,show_photons=True)

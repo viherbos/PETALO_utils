@@ -147,7 +147,8 @@ if __name__ == "__main__":
     pool_size = mp.cpu_count()
     pool = mp.Pool(processes=pool_size)
 
-    pool.map(TRANS_map, [i for i in range(10)])
+    pool.map(TRANS_map, [i for i in range(10,41)])
+    # Range of Files to Translate
 
     pool.close()
     pool.join()
