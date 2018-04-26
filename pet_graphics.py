@@ -167,6 +167,8 @@ class DET_SHOW(object):
 
         max_light = float(data[event,:].max())
 
+        print max_light
+
         count=0
         for i in sensors:
             color = int((data[event,count]/max_light)*200.0)
@@ -214,11 +216,12 @@ if __name__ == '__main__':
     B = DET_SHOW(SIM_CONT.data)
 
     os.chdir("/home/viherbos/DAQ_DATA/NEUTRINOS/CONT_RING/")
-    filename = "p_FR_infinity_0.h5"
+    #filename = "p_FR_infinity_0.h5"
+    filename = "daq_out.h5"
 
     positions = np.array(pd.read_hdf(filename,key='sensors'))
     data = np.array(pd.read_hdf(filename,key='MC'), dtype = 'int32')
     # for i in range(0,100):
     #     B(positions,data,i,ident=False,show_photons=True)
 
-    B(positions,data,125,ident=False,show_photons=True)
+    B(positions,data,700,ident=False,show_photons=True)
