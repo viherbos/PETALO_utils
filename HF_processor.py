@@ -138,16 +138,16 @@ def TRANS_gen(index,path,filename,outfile):
 
 if __name__ == "__main__":
 
-    kargs = {'path'     :"/home/viherbos/DAQ_DATA/NEUTRINOS/CONT_RING/",
-             'filename' :"full_ring_infinity_depth3cm_individual_sipms.",
-             'outfile'  :"p_FR_infinity_"}
+    kargs = {'path'     :"/home/viherbos/DAQ_DATA/NEUTRINOS/LESS_4mm/",
+             'filename' :"full_ring_depth3cm_pitch4mm.",
+             'outfile'  :"p_FR_infinity_4mm_"}
     TRANS_map = partial(TRANS_gen, **kargs)
 
     # Multiprocess Work
     pool_size = mp.cpu_count()
     pool = mp.Pool(processes=pool_size)
 
-    pool.map(TRANS_map, [i for i in range(45,80)])
+    pool.map(TRANS_map, [i for i in range(0,10)])
     # Range of Files to Translate
 
     pool.close()

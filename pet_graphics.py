@@ -158,17 +158,8 @@ class DET_SHOW(object):
         for i in list(self.w.items):
             self.w.removeItem(i)
 
-        #os.chdir(path)
-        #self.sensors = pd.read_hdf(file_name,key='sensors')
-        #print self.sensors
-        #self.positions = np.array(self.sensors)
-        #data = pd.read_hdf(file_name,key='MC')
-        #data = np.array(data, dtype = 'int32')
-
         max_light = float(data[event,:].max())
-
         print max_light
-
         count=0
         for i in sensors:
             color = int((data[event,count]/max_light)*200.0)
@@ -195,33 +186,14 @@ class DET_SHOW(object):
 
 if __name__ == '__main__':
 
-    # SIM=conf.SIM_DATA(read=False)
-    # print SIM.data
-    # A = DET_SHOW(SIM.data)
-    #
-    # os.chdir("/home/viherbos/DAQ_DATA/NEUTRINOS/RING/")
-    # filename = "p_FRSET_0.h5"
-    #
-    # positions = np.array(pd.read_hdf(filename,key='sensors'))
-    # data = np.array(pd.read_hdf(filename,key='MC'), dtype = 'int32')
-    #
-    # for i in range(0,100):
-    #     A(positions,data,i,True,False)
-    #A(positions,data,0,True,False)
+    path = "/home/viherbos/DAQ_DATA/NEUTRINOS/LESS_4mm/"
+    filename = "p_FR_infinity_4mm_0.h5"
 
-
-
-    SIM_CONT=conf.SIM_DATA(filename="sim_config.json",read=True)
+    SIM_CONT=conf.SIM_DATA(filename=path+"infinity_4mm.json",read=True)
     print SIM_CONT.data
     B = DET_SHOW(SIM_CONT.data)
-
-    os.chdir("/home/viherbos/DAQ_DATA/NEUTRINOS/CONT_RING/")
-    #filename = "p_FR_infinity_0.h5"
-    filename = "daq_out.h5"
-
-    positions = np.array(pd.read_hdf(filename,key='sensors'))
-    data = np.array(pd.read_hdf(filename,key='MC'), dtype = 'int32')
+    positions = np.array(pd.read_hdf(path+filename,key='sensors'))
+    data = np.array(pd.read_hdf(path+filename,key='MC'), dtype = 'int32')
     # for i in range(0,100):
-    #     B(positions,data,i,ident=False,show_photons=True)
-
-    B(positions,data,700,ident=False,show_photons=True)
+    #     B(positions,data,i,ident=False,show_photons=False)
+    B(positions,data,20,ident=False,show_photons=False)
