@@ -11,13 +11,14 @@ import config_sim as conf
 
 
 class GLTextItem(GLGraphicsItem):
-    def __init__(self, X=None, Y=None, Z=None, text=None, size=7):
+    def __init__(self, X=None, Y=None, Z=None, text=None, size=7, color=[50,50,50]):
         GLGraphicsItem.__init__(self)
         self.text = text
         self.X = X
         self.Y = Y
         self.Z = Z
         self.size = size
+        self.color = color
 
     def setGLViewWidget(self, GLViewWidget):
         self.GLViewWidget = GLViewWidget
@@ -39,17 +40,16 @@ class GLTextItem(GLGraphicsItem):
         self.update()
 
     def paint(self):
-        self.GLViewWidget.qglColor(QtCore.Qt.white)
-        self.myFont = QtGui.QFont("Helvetica", self.size);
+        self.GLViewWidget.qglColor(QtGui.QColor(*self.color))
+        self.myFont = QtGui.QFont("Arial", self.size);
 
-        self.GLViewWidget.renderText(self.X, self.Y, self.Z, self.text,self.myFont)
-
+        self.GLViewWidget.renderText(self.X, self.Y, self.Z, self.text, self.myFont)
 
 class DET_SHOW(object):
     def __init__(self,data):
-        self.sipm       = data['SIPM']['size']
-        self.app = pg.QtGui.QApplication([])
-        self.w   = gl.GLViewWidget()
+        self.sipm = data['SIPM']['size']
+        self.app  = pg.QtGui.QApplication([])
+        self.w    = gl.GLViewWidget()
 
 
     def np2cart(self,p):
@@ -86,7 +86,7 @@ class DET_SHOW(object):
 
 
     def SiPM_QT(self,position,phi,name,photons,max_photons,id=False,
-                show_photons=True):
+                show_photons=True, MU_LIN=True):
         s = np.array(self.sipm,dtype=float)
         p = np.array([[s[0]/2,s[1]/2,s[2]/2],
                       [s[0]/2,s[1]/2,-s[2]/2],
@@ -121,8 +121,15 @@ class DET_SHOW(object):
                                                             [1,3,5]
                                                          ]))
 
-        color = int((photons/max_photons)*200.0)
-        color = pg.glColor(color+55,color+55,color+55)
+        self.w.setBackgroundColor([80,80,80])
+        MU=25
+        if MU_LIN==True:
+            color = int(np.log(1+MU*photons/max_photons)/np.log(1+MU)*200.0)
+        else:
+            color = int(photons/max_photons*200)
+
+        rgb=np.array([0.75*color+55,color+55,0.25*color+55])
+        color = pg.glColor(*rgb)
 
         plt = gl.GLMeshItem(meshdata=meshdata, color = color,
                             edgeColor=pg.glColor('w'),
@@ -138,22 +145,27 @@ class DET_SHOW(object):
             t = GLTextItem( X=position[0],
                             Y=position[1],
                             Z=position[2],
-                            text=str(int(name)))
+                            text=str(int(name)),size=4)
 
             t.setGLViewWidget(self.w)
             self.w.addItem(t)
+
+
+        text_color = (np.array([rgb[0],255,255])-rgb)*0.75
+        text_size = self.w.opts['distance']
 
         if (show_photons==True and photons>0) :
             t = GLTextItem( X=position[0],
                             Y=position[1],
                             Z=position[2],
-                            text=str(int(photons)))
+                            text=str(int(photons)),size=5,
+                            color=text_color)
 
             t.setGLViewWidget(self.w)
             self.w.addItem(t)
 
 
-    def __call__(self,sensors,data,event,ident=False,show_photons=True):
+    def __call__(self,sensors,data,event,ident=False,show_photons=True,MU_LIN=True):
         items = []
         for i in list(self.w.items):
             self.w.removeItem(i)
@@ -162,14 +174,15 @@ class DET_SHOW(object):
         print max_light
         count=0
         for i in sensors:
-            color = int((data[event,count]/max_light)*200.0)
+            #color = int((data[event,count]/max_light)*200.0)
             #print color
             self.SiPM_QT(i[1:].transpose(),
                          np.arctan2(i[2],i[1]),i[0],
                          data[event,count],
                          max_light,
                          id = ident,
-                         show_photons=show_photons
+                         show_photons=show_photons,
+                         MU_LIN=MU_LIN
                          )
             count+=1
 
@@ -196,4 +209,4 @@ if __name__ == '__main__':
     data = np.array(pd.read_hdf(path+filename,key='MC'), dtype = 'int32')
     # for i in range(0,100):
     #     B(positions,data,i,ident=False,show_photons=False)
-    B(positions,data,20,ident=False,show_photons=False)
+    B(positions,data,20,ident=False,show_photons=False, MU_LIN=False)
