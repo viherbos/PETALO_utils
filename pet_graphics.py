@@ -86,7 +86,7 @@ class DET_SHOW(object):
 
 
     def SiPM_QT(self,position,phi,name,photons,max_photons,id=False,
-                show_photons=True, MU_LIN=True):
+                show_photons=True, MU_LIN=True, TH=0):
         s = np.array(self.sipm,dtype=float)
         p = np.array([[s[0]/2,s[1]/2,s[2]/2],
                       [s[0]/2,s[1]/2,-s[2]/2],
@@ -141,7 +141,7 @@ class DET_SHOW(object):
                             computeNormals='False')
         self.w.addItem(plt)
 
-        if (id==True) :
+        if (id==True):
             t = GLTextItem( X=position[0],
                             Y=position[1],
                             Z=position[2],
@@ -154,18 +154,19 @@ class DET_SHOW(object):
         text_color = (np.array([rgb[0],255,255])-rgb)*0.75
         text_size = self.w.opts['distance']
 
-        if (show_photons==True and photons>0) :
+        if (show_photons==True and photons>TH) :
             t = GLTextItem( X=position[0],
                             Y=position[1],
                             Z=position[2],
-                            text=str(int(photons)),size=5,
+                            text=str(int(photons)),size=8,
                             color=text_color)
 
             t.setGLViewWidget(self.w)
             self.w.addItem(t)
 
 
-    def __call__(self,sensors,data,event,ident=False,show_photons=True,MU_LIN=True):
+    def __call__(self,sensors,data,event,ident=False,show_photons=True,
+                MU_LIN=True,TH=0):
         items = []
         for i in list(self.w.items):
             self.w.removeItem(i)
@@ -182,7 +183,8 @@ class DET_SHOW(object):
                          max_light,
                          id = ident,
                          show_photons=show_photons,
-                         MU_LIN=MU_LIN
+                         MU_LIN=MU_LIN,
+                         TH=TH
                          )
             count+=1
 
@@ -209,4 +211,4 @@ if __name__ == '__main__':
     data = np.array(pd.read_hdf(path+filename,key='MC'), dtype = 'int32')
     # for i in range(0,100):
     #     B(positions,data,i,ident=False,show_photons=False)
-    B(positions,data,20,ident=False,show_photons=False, MU_LIN=False)
+    B(positions,data,20,ident=False,show_photons=True, MU_LIN=True, TH=1)
