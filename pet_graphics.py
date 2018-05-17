@@ -7,7 +7,10 @@ import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 from pyqtgraph.opengl.GLGraphicsItem import GLGraphicsItem
 from pyqtgraph.Qt import QtCore, QtGui
-import config_sim as conf
+sys.path.append("../PETALO_DAQ_infinity/")
+from SimLib import config_sim as conf
+from SimLib import DAQ_infinity as DAQ
+
 
 
 class GLTextItem(GLGraphicsItem):
@@ -50,7 +53,7 @@ class DET_SHOW(object):
         self.sipm = data['SIPM']['size']
         self.app  = pg.QtGui.QApplication([])
         self.w    = gl.GLViewWidget()
-
+        self.data = data
 
     def np2cart(self,p):
         return {'x':p[0],'y':p[1],'z':p[2]}
@@ -100,27 +103,8 @@ class DET_SHOW(object):
         p=self.rot_cyl(p,phi)
         position3d = np.array([position for i in range(p.shape[0])])
         p = p + position3d
-        verts = [ [p[0],p[1],p[3],p[2]],
-              [p[0],p[2],p[6],p[4]],
-              [p[1],p[3],p[7],p[5]],
-              [p[1],p[0],p[4],p[5]],
-              [p[6],p[4],p[5],p[7]],
-              [p[6],p[2],p[3],p[7]]
-            ]
 
         #plt = gl.GLScatterPlotItem(pos=p, color=pg.glColor('w'),size=1)
-        meshdata = gl.MeshData(vertexes=p,faces=np.array([  [0,1,4],
-                                                            [1,4,5],
-                                                            [0,4,6],
-                                                            [0,6,2],
-                                                            [0,2,3],
-                                                            [0,1,3],
-                                                            [6,2,3],
-                                                            [6,3,7],
-                                                            [7,3,5],
-                                                            [1,3,5]
-                                                         ]))
-
         self.w.setBackgroundColor([80,80,80])
         MU=25
         if MU_LIN==True:
@@ -129,16 +113,31 @@ class DET_SHOW(object):
             color = int(photons/max_photons*200)
 
         rgb=np.array([0.75*color+55,color+55,0.25*color+55])
-        color = pg.glColor(*rgb)
+        color  = pg.glColor(*rgb)
+        color2 = pg.glColor(*(np.array([128,0,128])))
 
-        plt = gl.GLMeshItem(meshdata=meshdata, color = color,
+        meshdata = gl.MeshData(vertexes=p,
+                               faces=np.array([ [0,1,4], [5,4,1],
+                                                [2,0,6], [4,6,0],
+                                                [0,2,3], [1,0,3],
+                                                [6,2,3], [7,3,6],
+                                                [7,3,5], [1,3,5]]),
+                          faceColors=np.array([ color,    color,
+                                                color,    color,
+                                                color,    color,
+                                                color,    color,
+                                                color,    color]))
+
+        plt = gl.GLMeshItem(meshdata=meshdata, color = None,
                             edgeColor=pg.glColor('w'),
                             drawEdges=False,
-                            smooth=True,
+                            smooth=False,
                             drawFaces=True,
-                            shader= 'shaded',
+                            shader= 'shaded',#'balloon',#None, #'shaded',
                             glOptions='opaque',
                             computeNormals='False')
+
+        #plt.setGLOptions('additive')
         self.w.addItem(plt)
 
         if (id==True):
@@ -168,25 +167,45 @@ class DET_SHOW(object):
     def __call__(self,sensors,data,event,ident=False,show_photons=True,
                 MU_LIN=True,TH=0):
         items = []
+
+        L1_Slice, SiPM_Matrix_I, SiPM_Matrix_O, topology = DAQ.SiPM_Mapping(self.data, 'mixed')
+
         for i in list(self.w.items):
             self.w.removeItem(i)
 
         max_light = float(data[event,:].max())
         print max_light
         count=0
-        for i in sensors:
-            #color = int((data[event,count]/max_light)*200.0)
-            #print color
-            self.SiPM_QT(i[1:].transpose(),
-                         np.arctan2(i[2],i[1]),i[0],
-                         data[event,count],
-                         max_light,
-                         id = ident,
-                         show_photons=show_photons,
-                         MU_LIN=MU_LIN,
-                         TH=TH
-                         )
-            count+=1
+
+        # for j in SiPM_Matrix_I: #sensors:
+        #     for k in j:
+        #         k = k+1000 # Paola's style
+        #         i = sensors[int(np.argwhere(sensors[:,0]==k))]
+        #         self.SiPM_QT(i[1:].transpose(),
+        #                      np.arctan2(i[2],i[1]),i[0],
+        #                      data[event,count],
+        #                      max_light,
+        #                      id = ident,
+        #                      show_photons=show_photons,
+        #                      MU_LIN=MU_LIN,
+        #                      TH=TH
+        #                      )
+        #         count+=1
+
+        for j in L1_Slice[1]: #sensors:
+            for k in j:
+                k = k+1000 # Paola's style
+                i = sensors[int(np.argwhere(sensors[:,0]==k))]
+                self.SiPM_QT(i[1:].transpose(),
+                             np.arctan2(i[2],i[1]),i[0],
+                             data[event,count],
+                             max_light,
+                             id = ident,
+                             show_photons=show_photons,
+                             MU_LIN=MU_LIN,
+                             TH=TH
+                             )
+                count+=1
 
         t = GLTextItem( X=0, Y=0, Z=0, text=str(event), size=12)
         t.setGLViewWidget(self.w)
@@ -202,13 +221,22 @@ class DET_SHOW(object):
 if __name__ == '__main__':
 
     path = "/home/viherbos/DAQ_DATA/NEUTRINOS/LESS_4mm/"
-    filename = "p_FR_infinity_4mm_0.h5"
+    #filename = "daq_output_infinity_4mm_16_2_5_buf800_M"
+    jsonfilename = "infinity_4mm_16_2_5_buf800_M"
+    filename     = "p_FR_infinity_4mm_0"
 
-    SIM_CONT=conf.SIM_DATA(filename=path+"infinity_4mm.json",read=True)
-    print SIM_CONT.data
+
+    positions = np.array(pd.read_hdf(path+filename+".h5",key='sensors'))
+    data = np.array(pd.read_hdf(path+filename+".h5",key='MC'), dtype = 'int32')
+
+
+    SIM_CONT=conf.SIM_DATA(filename=path+jsonfilename+".json",read=True)
     B = DET_SHOW(SIM_CONT.data)
-    positions = np.array(pd.read_hdf(path+filename,key='sensors'))
-    data = np.array(pd.read_hdf(path+filename,key='MC'), dtype = 'int32')
-    # for i in range(0,100):
-    #     B(positions,data,i,ident=False,show_photons=False)
-    B(positions,data,20,ident=False,show_photons=True, MU_LIN=True, TH=1)
+
+
+    B( positions, data, event=745,
+       ident=False,
+       show_photons=True,
+       MU_LIN=True,
+       TH=1
+     )
