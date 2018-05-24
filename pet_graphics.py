@@ -53,7 +53,7 @@ class DET_SHOW(object):
         self.sipm = data['SIPM']['size']
         self.app  = pg.QtGui.QApplication([])
         self.w    = gl.GLViewWidget()
-        self.w.setBackgroundColor([0,0,0])
+        self.w.setBackgroundColor([50,50,50])
         self.data = data
 
     def np2cart(self,p):
@@ -168,7 +168,8 @@ class DET_SHOW(object):
                 MU_LIN=True,TH=0):
         items = []
 
-        L1_Slice, SiPM_Matrix_I, SiPM_Matrix_O, topology = DAQ.SiPM_Mapping(self.data, 'striped')
+        L1_Slice, SiPM_Matrix_I, SiPM_Matrix_O, topology = DAQ.SiPM_Mapping(self.data,
+                                                                            self.data['L1']['map_style'])
 
         for i in list(self.w.items):
             self.w.removeItem(i)
@@ -195,7 +196,7 @@ class DET_SHOW(object):
         color_map = [[1,0,0],[0,1,0],[0,0,1],
                      [1,1,0],[0,1,1],[1,0,1],
                      [2.5,0,0],[0,2.5,0],[0,0,2.5],
-                     [2.5,2.5,0],[0,25.,2.5],[2.5,0,2.5]]
+                     [2.5,2.5,0],[0,2.5,2.5],[2.5,0,2.5]]
         color_i = 100
 
         for m in L1_Slice:
@@ -241,8 +242,8 @@ if __name__ == '__main__':
 
     path = "/home/viherbos/DAQ_DATA/NEUTRINOS/LESS_4mm/"
     #filename = "daq_output_infinity_4mm_16_2_5_buf800_M"
-    jsonfilename = "test_1" #"infinity_4mm_16_2_5_buf800_M"
-    filename     =  "p_FR_infinity_4mm_0"#"daq_output_test_1" #"p_FR_infinity_4mm_0"
+    jsonfilename = "infinity_test_mixed" #"infinity_4mm_16_2_5_buf800"
+    filename     =  "daq_output_infinity_test_mixed" #"p_FR_infinity_4mm_0" 
 
 
     positions = np.array(pd.read_hdf(path+filename+".h5",key='sensors'))
@@ -253,7 +254,7 @@ if __name__ == '__main__':
     B = DET_SHOW(SIM_CONT.data)
 
 
-    B( positions, data, event=20,
+    B( positions, data, event=200,
        ident=False,
        show_photons=True,
        MU_LIN=True,
