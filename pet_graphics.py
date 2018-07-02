@@ -9,8 +9,8 @@ from pyqtgraph.opengl.GLGraphicsItem import GLGraphicsItem
 from pyqtgraph.Qt import QtCore, QtGui
 sys.path.append("../PETALO_DAQ_infinity/")
 from SimLib import config_sim as conf
-from SimLib import DAQ_infinity as DAQ
-
+#from SimLib import DAQ_infinity as DAQ
+from SimLib import sipm_mapping as DAQ
 
 
 class GLTextItem(GLGraphicsItem):
@@ -140,11 +140,11 @@ class DET_SHOW(object):
         #plt.setGLOptions('additive')
         self.w.addItem(plt)
 
-        if (id==True):
+        if (id==True): #and (int(name)==3512 or int(name)==1000 or int(name)==3511)):
             t = GLTextItem( X=position[0],
                             Y=position[1],
                             Z=position[2],
-                            text=str(int(name)),size=4)
+                            text=str(int(name)),size=8)
 
             t.setGLViewWidget(self.w)
             self.w.addItem(t)
@@ -204,8 +204,8 @@ class DET_SHOW(object):
             # cnt = np.random.randint(0,2)
             # count[cnt] = np.random.randint(80,255)
 
-            for j in m: #sensors:
-                for k in j:
+            for j in m: #ASICs
+                for k in j: #SiPMS
                     k = k+1000 # Paola's style
                     i = sensors[int(np.argwhere(sensors[:,0]==k))]
                     self.SiPM_QT(i[1:].transpose(),
@@ -242,8 +242,8 @@ if __name__ == '__main__':
 
     path = "/home/viherbos/DAQ_DATA/NEUTRINOS/LESS_4mm/"
     #filename = "daq_output_infinity_4mm_16_2_5_buf800_M"
-    jsonfilename = "infinity_test_mixed" #"infinity_4mm_16_2_5_buf800"
-    filename     =  "daq_output_infinity_test_mixed" #"p_FR_infinity_4mm_0" 
+    jsonfilename = "OF_4mm_min"#"infinity_striped_2" #"infinity_4mm_16_2_5_buf800"
+    filename     =  "daq_output_TEST_OF_4mm_min"#"daq_output_infinity_test_mixed" #"p_FR_infinity_4mm_0"
 
 
     positions = np.array(pd.read_hdf(path+filename+".h5",key='sensors'))
@@ -254,9 +254,9 @@ if __name__ == '__main__':
     B = DET_SHOW(SIM_CONT.data)
 
 
-    B( positions, data, event=200,
+    B( positions, data, event=20,
        ident=False,
        show_photons=True,
        MU_LIN=True,
-       TH=1
+       TH=5
      )
