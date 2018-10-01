@@ -206,11 +206,11 @@ class DET_SHOW(object):
 
             for j in m: #ASICs
                 for k in j: #SiPMS
-                    k = k+1000 # Paola's style
+                    k = k+sensors[0,0] # Paola's style
                     i = sensors[int(np.argwhere(sensors[:,0]==k))]
                     self.SiPM_QT(i[1:].transpose(),
                                  np.arctan2(i[2],i[1]),i[0],
-                                 data[event,int(i[0]-1000)],
+                                 data[event,int(i[0]-sensors[0,0])],
                                  max_light,
                                  id = ident,
                                  show_photons=show_photons,
@@ -219,6 +219,7 @@ class DET_SHOW(object):
                                  color2=[color_i*color_map[cnt][2],
                                          color_i*color_map[cnt][1],
                                          color_i*color_map[cnt][0]]
+                                 #color2=[color_i,color_i,color_i]
                                  )
             if cnt < 11:
                 cnt += 1
@@ -240,10 +241,11 @@ class DET_SHOW(object):
 
 if __name__ == '__main__':
 
-    path = "/home/viherbos/DAQ_DATA/NEUTRINOS/LESS_4mm/"
-    #filename = "daq_output_infinity_4mm_16_2_5_buf800_M"
-    jsonfilename = "OF_4mm_min"#"infinity_striped_2" #"infinity_4mm_16_2_5_buf800"
-    filename     =  "daq_output_TEST_OF_4mm_min"#"daq_output_infinity_test_mixed" #"p_FR_infinity_4mm_0"
+    path = "/home/viherbos/DAQ_DATA/NEUTRINOS/PETit-ring/4mm_pitch/"
+    filename = "DAQ_OUT_oneface_OF_4mm_BUF1024_testA"
+    #filename = "p_FR_oneface_0"
+    jsonfilename = "OF_4mm_BUF1024_testA"
+    #filename     =  "DAQ_OUT_oneface.0"
 
 
     positions = np.array(pd.read_hdf(path+filename+".h5",key='sensors'))
@@ -254,9 +256,9 @@ if __name__ == '__main__':
     B = DET_SHOW(SIM_CONT.data)
 
 
-    B( positions, data, event=20,
+    B( positions, data, event=3,
        ident=False,
        show_photons=True,
        MU_LIN=True,
-       TH=5
+       TH=2
      )
