@@ -53,7 +53,7 @@ class DET_SHOW(object):
         self.sipm = data['SIPM']['size']
         self.app  = app
         self.w    = widget
-        self.w.setBackgroundColor([50,50,50])
+        self.w.setBackgroundColor([70,70,70])
         self.data = data
 
     def np2cart(self,p):
@@ -233,10 +233,45 @@ class DET_SHOW(object):
         self.w.addItem(t)
 
 
+class graphs_update(object):
+    def __init__(self,event,SIM_CONT,Qtapp,widget,widget2,data_TE,data_recons,positions):
+        self.event = event
+        self.Qtapp = Qtapp
+        self.widget = widget
+        self.widget2 = widget2
+        self.positions = positions
+        self.data_TE = data_TE
+        self.data_recons = data_recons
+        self.B = DET_SHOW(SIM_CONT.data,self.Qtapp,self.widget)
+        self.B2 = DET_SHOW(SIM_CONT.data,self.Qtapp,self.widget2)
+
+    def response(self):
+        self.event = self.event + 1
+        print self.event
+
+        self.B( self.positions, self.data_TE, event=self.event,
+           ident=False,
+           show_photons=True,
+           MU_LIN=True,
+           TH=0
+         )
+        self.B2( self.positions, self.data_recons, event=self.event,
+           ident=False,
+           show_photons=True,
+           MU_LIN=True,
+           TH=0
+         )
+        widget.opts['distance']=550
+        widget2.opts['distance']=550
+        self.widget.update()
+        self.widget2.update()
+        #widget2.show()
+
 
 
 
 if __name__ == '__main__':
+
 
     path = "/home/viherbos/DAQ_DATA/NEUTRINOS/PETit-ring/6mm_pitch/"
     #filename = "DAQ_OUT_oneface_OF_4mm_BUF640_V3"
@@ -256,35 +291,25 @@ if __name__ == '__main__':
 
     Qtapp  = pg.QtGui.QApplication([])
 
+    window = QtGui.QWidget()
+    window.resize(700,900)
 
     widget = gl.GLViewWidget()
     widget2 = gl.GLViewWidget()
 
+    graph = graphs_update(10,SIM_CONT,Qtapp,widget,widget2,data_TE,data_recons,positions)
 
-    for i in range(20):
-        B = DET_SHOW(SIM_CONT.data,Qtapp,widget)
-        B( positions, data_TE, event=i,
-           ident=False,
-           show_photons=True,
-           MU_LIN=True,
-           TH=0
-         )
-        widget.opts['distance']=500
-        widget.show()
+    btn = QtGui.QPushButton('press me')
+    layout = QtGui.QGridLayout()
+    window.setLayout(layout)
+    layout.addWidget(btn,0,0)
+    layout.addWidget(widget,1,0,1,3)
+    layout.addWidget(widget2,2,0,1,3)
 
-        B2 = DET_SHOW(SIM_CONT.data,Qtapp,widget2)
-        B2( positions, data_recons, event=i,
-           ident=False,
-           show_photons=True,
-           MU_LIN=True,
-           TH=0
-         )
+    btn.clicked.connect(graph.response)
 
-        widget2.opts['distance']=500
-        widget2.show()
+    window.show()
 
 
-        if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-            QtGui.QApplication.instance().exec_()
-
-        raw_input() 
+    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+        QtGui.QApplication.instance().exec_()
