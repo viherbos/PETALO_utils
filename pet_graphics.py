@@ -107,10 +107,13 @@ class DET_SHOW(object):
 
         #plt = gl.GLScatterPlotItem(pos=p, color=pg.glColor('w'),size=1)
         MU=25
-        if MU_LIN==True:
-            color = int(np.log(1+MU*photons/max_photons)/np.log(1+MU)*200.0)
+        if (max_photons == 0):
+            color = 0
         else:
-            color = int(photons/max_photons*200)
+            if MU_LIN==True:
+                color = int(np.log(1+MU*photons/max_photons)/np.log(1+MU)*200.0)
+            else:
+                color = int(photons/max_photons*200)
 
         rgb=np.array([0.75*color+55,color+55,0.25*color+55])
         color  = pg.glColor(*rgb)
@@ -228,9 +231,9 @@ class DET_SHOW(object):
 
 
 
-        t = GLTextItem( X=0, Y=0, Z=0, text=str(event), size=12)
-        t.setGLViewWidget(self.w)
-        self.w.addItem(t)
+        # t = GLTextItem( X=0, Y=0, Z=0, text=str(event), size=12)
+        # t.setGLViewWidget(self.w)
+        # self.w.addItem(t)
 
 
 class graphs_update(object):
@@ -244,6 +247,7 @@ class graphs_update(object):
         self.data_recons = data_recons
         self.B = DET_SHOW(SIM_CONT.data,self.Qtapp,self.widget)
         self.B2 = DET_SHOW(SIM_CONT.data,self.Qtapp,self.widget2)
+
 
     def response(self):
         self.event = self.event + 1
@@ -263,6 +267,15 @@ class graphs_update(object):
          )
         widget.opts['distance']=550
         widget2.opts['distance']=550
+
+        t_recons = GLTextItem( X=0,Y=0,Z=0,text="RECONS "+str(self.event),size=8)
+        t_TE = GLTextItem( X=0,Y=0,Z=0,text="TE "+str(self.event),size=8)
+
+        t_recons.setGLViewWidget(widget2)
+        widget2.addItem(t_recons)
+        t_TE.setGLViewWidget(widget)
+        widget.addItem(t_TE)
+
         self.widget.update()
         self.widget2.update()
         #widget2.show()
@@ -297,7 +310,8 @@ if __name__ == '__main__':
     widget = gl.GLViewWidget()
     widget2 = gl.GLViewWidget()
 
-    graph = graphs_update(10,SIM_CONT,Qtapp,widget,widget2,data_TE,data_recons,positions)
+    graph = graphs_update(38,SIM_CONT,Qtapp,widget,widget2,data_TE,data_recons,positions)
+    graph.response()
 
     btn = QtGui.QPushButton('press me')
     layout = QtGui.QGridLayout()
