@@ -49,10 +49,10 @@ class GLTextItem(GLGraphicsItem):
         self.GLViewWidget.renderText(self.X, self.Y, self.Z, self.text, self.myFont)
 
 class DET_SHOW(object):
-    def __init__(self,data):
+    def __init__(self,data,app,widget):
         self.sipm = data['SIPM']['size']
-        self.app  = pg.QtGui.QApplication([])
-        self.w    = gl.GLViewWidget()
+        self.app  = app
+        self.w    = widget
         self.w.setBackgroundColor([50,50,50])
         self.data = data
 
@@ -219,7 +219,7 @@ class DET_SHOW(object):
                                  color2=[color_i*color_map[cnt][2],
                                          color_i*color_map[cnt][1],
                                          color_i*color_map[cnt][0]]
-                                 #color2=[color_i,color_i,color_i]
+                                 # color2=[color_i,color_i,color_i]
                                  )
             if cnt < 11:
                 cnt += 1
@@ -232,33 +232,59 @@ class DET_SHOW(object):
         t.setGLViewWidget(self.w)
         self.w.addItem(t)
 
-        self.w.opts['distance']=500
-        self.w.show()
 
-        pg.QtGui.QApplication.exec_()
 
 
 
 if __name__ == '__main__':
 
-    path = "/home/viherbos/DAQ_DATA/NEUTRINOS/PETit-ring/4mm_pitch/"
-    filename = "DAQ_OUT_oneface_OF_4mm_BUF1024_testA"
+    path = "/home/viherbos/DAQ_DATA/NEUTRINOS/PETit-ring/6mm_pitch/"
+    #filename = "DAQ_OUT_oneface_OF_4mm_BUF640_V3"
     #filename = "p_FR_oneface_0"
-    jsonfilename = "OF_4mm_BUF1024_testA"
-    #filename     =  "DAQ_OUT_oneface.0"
+    #jsonfilename = "OF_4mm_BUF640_V3"
+    jsonfilename = "test"
+    #filename     = "p_OF_6mm0"
+    filename     =  "FASTDAQOUT_OF6mm.0"
 
 
     positions = np.array(pd.read_hdf(path+filename+".h5",key='sensors'))
-    data = np.array(pd.read_hdf(path+filename+".h5",key='MC'), dtype = 'int32')
+    data_TE = np.array(pd.read_hdf(path+filename+".h5",key='MC_TE'), dtype = 'int32')
+    data_recons = np.array(pd.read_hdf(path+filename+".h5",key='MC_recons'), dtype = 'int32')
 
 
     SIM_CONT=conf.SIM_DATA(filename=path+jsonfilename+".json",read=True)
-    B = DET_SHOW(SIM_CONT.data)
+
+    Qtapp  = pg.QtGui.QApplication([])
 
 
-    B( positions, data, event=3,
-       ident=False,
-       show_photons=True,
-       MU_LIN=True,
-       TH=2
-     )
+    widget = gl.GLViewWidget()
+    widget2 = gl.GLViewWidget()
+
+
+    for i in range(20):
+        B = DET_SHOW(SIM_CONT.data,Qtapp,widget)
+        B( positions, data_TE, event=i,
+           ident=False,
+           show_photons=True,
+           MU_LIN=True,
+           TH=0
+         )
+        widget.opts['distance']=500
+        widget.show()
+
+        B2 = DET_SHOW(SIM_CONT.data,Qtapp,widget2)
+        B2( positions, data_recons, event=i,
+           ident=False,
+           show_photons=True,
+           MU_LIN=True,
+           TH=0
+         )
+
+        widget2.opts['distance']=500
+        widget2.show()
+
+
+        if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+            QtGui.QApplication.instance().exec_()
+
+        raw_input() 
