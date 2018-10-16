@@ -268,8 +268,8 @@ class graphs_update(object):
         widget.opts['distance']=550
         widget2.opts['distance']=550
 
-        t_recons = GLTextItem( X=0,Y=0,Z=0,text="RECONS "+str(self.event),size=8)
-        t_TE = GLTextItem( X=0,Y=0,Z=0,text="TE "+str(self.event),size=8)
+        t_recons = GLTextItem( X=20,Y=0,Z=0,text="RECONS "+str(self.event),size=8)
+        t_TE = GLTextItem( X=5,Y=0,Z=0,text="TE "+str(self.event),size=8)
 
         t_recons.setGLViewWidget(widget2)
         widget2.addItem(t_recons)
@@ -292,7 +292,7 @@ if __name__ == '__main__':
     #jsonfilename = "OF_4mm_BUF640_V3"
     jsonfilename = "test"
     #filename     = "p_OF_6mm0"
-    filename     =  "FASTDAQOUT_OF6mm.0"
+    filename     =  "FASTDAQOUT_OF6mm_TEST.0"
 
 
     positions = np.array(pd.read_hdf(path+filename+".h5",key='sensors'))
@@ -313,7 +313,7 @@ if __name__ == '__main__':
     graph = graphs_update(38,SIM_CONT,Qtapp,widget,widget2,data_TE,data_recons,positions)
     graph.response()
 
-    btn = QtGui.QPushButton('press me')
+    btn = QtGui.QPushButton('NEXT EVENT')
     layout = QtGui.QGridLayout()
     window.setLayout(layout)
     layout.addWidget(btn,0,0)
