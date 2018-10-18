@@ -4,6 +4,7 @@ import tables as tb
 import numpy as np
 import multiprocessing as mp
 from functools import partial
+import sys
 sys.path.append("/home/viherbos/GITHUB/PETALO_DAQ_infinity/")
 from SimLib import config_sim as CFG
 
@@ -127,8 +128,8 @@ class HF2MAT(object):
 
 def TRANS_gen(index,path,filename,outfile):
 
-    TEST_c = HF2MAT( path,filename + str(index) +".pet.h5",
-                      outfile + str(index) + ".h5" )
+    TEST_c = HF2MAT( path,filename + str(index).zfill(3) +".pet.h5",
+                      outfile + str(index).zfill(3) + ".h5" )
     TEST_c.read()
     TEST_c.process()
     TEST_c.process_table()
@@ -144,8 +145,8 @@ if __name__ == "__main__":
     #          'filename' :"full_ring_iradius15cm_depth3cm_pitch4mm_one_face.",
     #          'outfile'  :"p_FR_oneface_"}
     kargs = {'path'     :"/mnt/715c6d30-57c4-4aed-a982-551291d8f848/PETIT_MC_DATA/",
-             'filename' :"full_ring_iradius15cm_depth3cm_pitch6mm_one_face.",
-             'outfile'  :"p_OF_6mm"}
+             'filename' :"full_ring_iradius161mm_depth3cm_pitch5mm_one_face.",
+             'outfile'  :"p_OF_5mm_161mm"}
 
     TRANS_map = partial(TRANS_gen, **kargs)
 
@@ -153,7 +154,7 @@ if __name__ == "__main__":
     pool_size = mp.cpu_count()
     pool = mp.Pool(processes=pool_size)
 
-    pool.map(TRANS_map, [i for i in range(0,50)])
+    pool.map(TRANS_map, [i for i in range(0,49)])
     # Range of Files to Translate
 
     pool.close()

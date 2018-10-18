@@ -11,6 +11,7 @@ sys.path.append("../PETALO_DAQ_infinity/")
 from SimLib import config_sim as conf
 #from SimLib import DAQ_infinity as DAQ
 from SimLib import sipm_mapping as DAQ
+import argparse
 
 
 class GLTextItem(GLGraphicsItem):
@@ -53,7 +54,7 @@ class DET_SHOW(object):
         self.sipm = data['SIPM']['size']
         self.app  = app
         self.w    = widget
-        self.w.setBackgroundColor([70,70,70])
+        self.w.setBackgroundColor([0,0,0])
         self.data = data
 
     def np2cart(self,p):
@@ -125,18 +126,18 @@ class DET_SHOW(object):
                                                 [0,2,3], [1,0,3],
                                                 [6,2,3], [7,3,6],
                                                 [7,3,5], [1,3,5]]),
-                          faceColors=np.array([ color,   color,
-                                                color,    color,
-                                                color,    color,
+                          faceColors=np.array([ color,     color,
                                                 color2,    color2,
-                                                color,    color]))
+                                                color2,    color2,
+                                                color,     color,
+                                                color2,    color2]))
 
         plt = gl.GLMeshItem(meshdata=meshdata, color = None,
                             edgeColor=pg.glColor('w'),
                             drawEdges=False,
-                            smooth=True,
+                            smooth=False,
                             drawFaces=True,
-                            shader= 'shaded',#'balloon',#None, #'shaded',
+                            #shader= 'shaded',#'balloon',#None, #'shaded',
                             glOptions='opaque',
                             computeNormals='False')
 
@@ -147,7 +148,7 @@ class DET_SHOW(object):
             t = GLTextItem( X=position[0],
                             Y=position[1],
                             Z=position[2],
-                            text=str(int(name)),size=8)
+                            text=str(int(name)),size=8,color=np.array([255,0,0]))
 
             t.setGLViewWidget(self.w)
             self.w.addItem(t)
@@ -222,7 +223,7 @@ class DET_SHOW(object):
                                  color2=[color_i*color_map[cnt][2],
                                          color_i*color_map[cnt][1],
                                          color_i*color_map[cnt][0]]
-                                 # color2=[color_i,color_i,color_i]
+                                 #color2=[color_i,color_i,color_i]
                                  )
             if cnt < 11:
                 cnt += 1
@@ -237,8 +238,9 @@ class DET_SHOW(object):
 
 
 class graphs_update(object):
-    def __init__(self,event,SIM_CONT,Qtapp,widget,widget2,data_TE,data_recons,positions):
-        self.event = event
+    def __init__(self,SIM_CONT,Qtapp,widget,widget2,text,data_TE,data_recons,
+                 positions,g_opt):
+        self.event = text.value()
         self.Qtapp = Qtapp
         self.widget = widget
         self.widget2 = widget2
@@ -247,21 +249,18 @@ class graphs_update(object):
         self.data_recons = data_recons
         self.B = DET_SHOW(SIM_CONT.data,self.Qtapp,self.widget)
         self.B2 = DET_SHOW(SIM_CONT.data,self.Qtapp,self.widget2)
-
+        self.g_opt = g_opt
 
     def response(self):
-        self.event = self.event + 1
-        print self.event
-
         self.B( self.positions, self.data_TE, event=self.event,
-           ident=False,
-           show_photons=True,
+           ident=self.g_opt['sipm_id'],
+           show_photons=self.g_opt['photons_id'],
            MU_LIN=True,
            TH=0
          )
         self.B2( self.positions, self.data_recons, event=self.event,
-           ident=False,
-           show_photons=True,
+           ident=self.g_opt['sipm_id'],
+           show_photons=self.g_opt['photons_id'],
            MU_LIN=True,
            TH=0
          )
@@ -278,21 +277,66 @@ class graphs_update(object):
 
         self.widget.update()
         self.widget2.update()
-        #widget2.show()
 
+
+    def event_update(self):
+        self.event = text.value()
 
 
 
 if __name__ == '__main__':
 
+    g_opt = {}
+    # Argument parser for config file name
+    parser = argparse.ArgumentParser(description='PETALO GRAPHICS.')
+    parser.add_argument("-f", "--json_file", action="store_true",
+                        help="Show events with configuration stored in json file")
+    parser.add_argument('arg1', metavar='json', nargs='?', help='')
 
-    path = "/home/viherbos/DAQ_DATA/NEUTRINOS/PETit-ring/6mm_pitch/"
-    #filename = "DAQ_OUT_oneface_OF_4mm_BUF640_V3"
-    #filename = "p_FR_oneface_0"
-    #jsonfilename = "OF_4mm_BUF640_V3"
-    jsonfilename = "test"
-    #filename     = "p_OF_6mm0"
-    filename     =  "FASTDAQOUT_OF6mm_TEST.0"
+    parser.add_argument("-d", "--directory", action="store_true",
+                        help="Work directory")
+    parser.add_argument('arg2', metavar='Working Path', nargs='?', help='')
+
+    parser.add_argument("-n", "--file_n",action="store_true",
+                        help="Data File Number")
+    parser.add_argument('arg3', metavar='Data File Number', nargs='?', help='')
+
+    parser.add_argument("-p", "--show_photons",action="store_true",
+                        help="Show Number of Photons")
+
+    parser.add_argument("-s", "--show_sipmID",action="store_true",
+                        help="Show Number of Photons")
+
+
+    args = parser.parse_args()
+
+    if args.json_file:
+        file_name = ''.join(args.arg1)
+    else:
+        file_name = "test"
+    if args.directory:
+        path = ''.join(args.arg2)
+    else:
+        path="/home/viherbos/DAQ_DATA/NEUTRINOS/PETit-ring/6mm_pitch/"
+    if args.file_n:
+        file_n = int(''.join(args.arg3))
+    else:
+        file_n = 0
+    if args.show_photons:
+        g_opt['photons_id'] = True
+    else:
+        g_opt['photons_id'] = False
+    if args.show_sipmID:
+        g_opt['sipm_id'] = True
+    else:
+        g_opt['sipm_id'] = False
+
+    config_file = file_name + ".json"
+
+    SIM_CONT=conf.SIM_DATA(filename=path + config_file ,read=True)
+
+    path     = SIM_CONT.data['ENVIRONMENT']['path_to_files']
+    filename = SIM_CONT.data['ENVIRONMENT']['MC_out_file_name']+'.'+str(file_n)
 
 
     positions = np.array(pd.read_hdf(path+filename+".h5",key='sensors'))
@@ -300,29 +344,33 @@ if __name__ == '__main__':
     data_recons = np.array(pd.read_hdf(path+filename+".h5",key='MC_recons'), dtype = 'int32')
 
 
-    SIM_CONT=conf.SIM_DATA(filename=path+jsonfilename+".json",read=True)
-
     Qtapp  = pg.QtGui.QApplication([])
-
     window = QtGui.QWidget()
-    window.resize(700,900)
 
+    text = QtGui.QSpinBox()
+    btn = QtGui.QPushButton('SHOW EVENT')
     widget = gl.GLViewWidget()
     widget2 = gl.GLViewWidget()
+    graph = graphs_update(SIM_CONT,Qtapp,widget,widget2,text,
+                                 data_TE,data_recons,positions,g_opt)
 
-    graph = graphs_update(38,SIM_CONT,Qtapp,widget,widget2,data_TE,data_recons,positions)
-    graph.response()
-
-    btn = QtGui.QPushButton('NEXT EVENT')
     layout = QtGui.QGridLayout()
     window.setLayout(layout)
-    layout.addWidget(btn,0,0)
-    layout.addWidget(widget,1,0,1,3)
-    layout.addWidget(widget2,2,0,1,3)
+    layout.addWidget(text,   0, 0, 1, 1)
+    layout.addWidget(btn,    0, 1, 1, 3)
+    layout.addWidget(widget, 1, 0, 1, 4)
+    layout.addWidget(widget2,2, 0, 1, 4)
 
+    window.resize(768,1024)
+    graph.response()
+
+
+    # Signals connection
     btn.clicked.connect(graph.response)
+    text.valueChanged.connect(graph.event_update)
 
     window.show()
+
 
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
