@@ -313,11 +313,11 @@ if __name__ == '__main__':
     if args.json_file:
         file_name = ''.join(args.arg1)
     else:
-        file_name = "test"
+        file_name = ""
     if args.directory:
         path = ''.join(args.arg2)
     else:
-        path="/home/viherbos/DAQ_DATA/NEUTRINOS/PETit-ring/6mm_pitch/"
+        path=""
     if args.file_n:
         file_n = int(''.join(args.arg3))
     else:
@@ -336,7 +336,7 @@ if __name__ == '__main__':
     SIM_CONT=conf.SIM_DATA(filename=path + config_file ,read=True)
 
     path     = SIM_CONT.data['ENVIRONMENT']['path_to_files']
-    filename = SIM_CONT.data['ENVIRONMENT']['MC_out_file_name']+'.'+str(file_n)
+    filename = SIM_CONT.data['ENVIRONMENT']['MC_out_file_name']+'.'+str(file_n).zfill(3)
 
 
     positions = np.array(pd.read_hdf(path+filename+".h5",key='sensors'))
@@ -348,6 +348,7 @@ if __name__ == '__main__':
     window = QtGui.QWidget()
 
     text = QtGui.QSpinBox()
+    text.setRange(0,9999)
     btn = QtGui.QPushButton('SHOW EVENT')
     widget = gl.GLViewWidget()
     widget2 = gl.GLViewWidget()
