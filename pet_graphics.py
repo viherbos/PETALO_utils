@@ -212,9 +212,15 @@ class DET_SHOW(object):
                 for k in j: #SiPMS
                     k = k+sensors[0,0] # Paola's style
                     i = sensors[int(np.argwhere(sensors[:,0]==k))]
+
+                    if (data[event,int(i[0]-sensors[0,0])]>0):
+                        data_show = data[event,int(i[0]-sensors[0,0])]
+                    else:
+                        data_show = 0
+
                     self.SiPM_QT(i[1:].transpose(),
                                  np.arctan2(i[2],i[1]),i[0],
-                                 data[event,int(i[0]-sensors[0,0])],
+                                 data_show,
                                  max_light,
                                  id = ident,
                                  show_photons=show_photons,
@@ -337,11 +343,13 @@ if __name__ == '__main__':
 
     path     = SIM_CONT.data['ENVIRONMENT']['path_to_files']
     filename = SIM_CONT.data['ENVIRONMENT']['MC_out_file_name']+'.'+str(file_n).zfill(3)
-
+    #filename = "./VER5/DAQ_OF5mm_test_REAL"
 
     positions = np.array(pd.read_hdf(path+filename+".h5",key='sensors'))
     data_TE = np.array(pd.read_hdf(path+filename+".h5",key='MC_TE'), dtype = 'int32')
     data_recons = np.array(pd.read_hdf(path+filename+".h5",key='MC_recons'), dtype = 'int32')
+    #data_TE = np.array(pd.read_hdf(path+filename+".h5",key='MC'), dtype = 'int32')
+    #data_recons = np.array(pd.read_hdf(path+filename+".h5",key='MC'), dtype = 'int32')
 
 
     Qtapp  = pg.QtGui.QApplication([])
